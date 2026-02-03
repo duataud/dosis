@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, FlatListProps } from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -13,19 +13,22 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 
 const HEADER_HEIGHT = 250;
 
-type Props = PropsWithChildren<{
-  headerImage: ReactElement;
-  headerBackgroundColor: { dark: string; light: string };
-}>;
+type Props<T> = PropsWithChildren<
+  {
+    headerImage: ReactElement;
+    headerBackgroundColor: { dark: string; light: string };
+  } & FlatListProps<T>
+>;
 
-export default function ParallaxScrollView({
+export default function ParallaxScrollView<T>({
   children,
   headerImage,
   headerBackgroundColor,
-}: Props) {
+  ...rest
+}: Props<T>) {
   const backgroundColor = useThemeColor({}, 'background');
   const colorScheme = useColorScheme() ?? 'light';
-  const scrollRef = useAnimatedRef<Animated.ScrollView>();
+  const scrollRef = useAnimatedRef<Animated.FlatList<T>>();
   const scrollOffset = useScrollOffset(scrollRef);
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -45,20 +48,25 @@ export default function ParallaxScrollView({
   });
 
   return (
-    <Animated.ScrollView
+    <Animated.FlatList
       ref={scrollRef}
       style={{ backgroundColor, flex: 1 }}
-      scrollEventThrottle={16}>
-      <Animated.View
-        style={[
-          styles.header,
-          { backgroundColor: headerBackgroundColor[colorScheme] },
-          headerAnimatedStyle,
-        ]}>
-        {headerImage}
-      </Animated.View>
-      <ThemedView style={styles.content}>{children}</ThemedView>
-    </Animated.ScrollView>
+      scrollEventThrottle={16}
+      ListHeaderComponent={
+        <>
+          <Animated.View
+            style={[
+              styles.header,
+              { backgroundColor: headerBackgroundColor[colorScheme] },
+              headerAnimatedStyle,
+            ]}>
+            {headerImage}
+          </Animated.View>
+          <ThemedView style={styles.content}>{children}</ThemedView>
+        </>
+      }
+      {...rest}
+    />
   );
 }
 
