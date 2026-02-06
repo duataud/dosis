@@ -2,11 +2,12 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useRouter } from 'expo-router';
 import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import phrases from '../data.json';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import phrases from '../../data.json';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const categories = Object.keys(phrases);
   const categoryColors: Record<string, string> = {
     superacion_personal: '#f97316',
@@ -45,7 +46,7 @@ export default function HomeScreen() {
           data={categories}
           renderItem={renderCategory}
           keyExtractor={(item) => item}
-          contentContainerStyle={styles.listContainer}
+          contentContainerStyle={[styles.listContainer, { paddingBottom: insets.bottom + 110 }]}
           ListHeaderComponent={
             <ThemedView style={styles.titleContainer}>
               <ThemedText type="title">Categorías</ThemedText>
