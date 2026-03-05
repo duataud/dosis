@@ -3,7 +3,8 @@ import { ThemedView } from '@/components/themed-view';
 import { FontAwesome } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, TouchableOpacity } from 'react-native';
+import { Easing, Animated as RNAnimated, StyleSheet, TouchableOpacity } from 'react-native';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 import phrases from '../../data.json';
 
 type Phrase = {
@@ -15,7 +16,8 @@ type Phrase = {
 export default function PhraseScreen() {
     const { category } = useLocalSearchParams<{ category: string }>();
     const [phrase, setPhrase] = useState<Phrase | null>(null);
-    const spinAnim = useRef(new Animated.Value(0)).current;
+    const [phraseVersion, setPhraseVersion] = useState(0);
+    const spinAnim = useRef(new RNAnimated.Value(0)).current;
     const categoryColors: Record<string, string> = {
         superacion_personal: '#f97316',
         productividad_y_enfoque: '#2563eb',
@@ -34,6 +36,7 @@ export default function PhraseScreen() {
         if (category && phrases[category as keyof typeof phrases]) {
             const categoryPhrases = phrases[category as keyof typeof phrases];
             const randomIndex = Math.floor(Math.random() * categoryPhrases.length);
+            setPhraseVersion((prev) => prev + 1);
             setPhrase(categoryPhrases[randomIndex]);
         }
     }, [category]);
@@ -44,7 +47,7 @@ export default function PhraseScreen() {
 
     const triggerSpin = () => {
         spinAnim.setValue(0);
-        Animated.timing(spinAnim, {
+        RNAnimated.timing(spinAnim, {
             toValue: 1,
             duration: 700,
             easing: Easing.inOut(Easing.cubic),
@@ -62,23 +65,30 @@ export default function PhraseScreen() {
 
     return (
             <ThemedView style={styles.container}>
-                <ThemedView style={styles.header}>
-                    <ThemedText type="title" style={styles.title}>
-                        {category?.replace(/_/g, ' ')}
-                    </ThemedText>
-                    <ThemedText style={styles.subtitle}>Una dosis rápida para el día</ThemedText>
-                </ThemedView>
-                <ThemedView style={styles.phraseCard}>
-                    <ThemedText style={[styles.quoteMark, { color: accentColor }]}>{'“'}</ThemedText>
-                    <ThemedText style={styles.phrase}>{phrase.frase}</ThemedText>
-                    <ThemedView style={styles.metaRow}>
-                        <ThemedText style={styles.source}>— {phrase.fuente}</ThemedText>
-                        <ThemedView style={[styles.badge, { backgroundColor: accentColor }]}>
-                            <ThemedText style={styles.badgeText}>
-                                {phrase.estilo || 'Clásico'}
-                            </ThemedText>
-                        </ThemedView>
+                <ThemedView style={styles.content}>
+                    <ThemedView style={styles.header}>
+                        <ThemedText type="title" style={styles.title}>
+                            {category?.replace(/_/g, ' ')}
+                        </ThemedText>
+                        <ThemedText style={styles.subtitle}>Una dosis rápida para el día</ThemedText>
                     </ThemedView>
+                    <Animated.View
+                        key={phraseVersion}
+                        entering={ZoomIn.duration(280)}
+                    >
+                        <ThemedView style={styles.phraseCard}>
+                            <ThemedText style={[styles.quoteMark, { color: accentColor }]}>{'“'}</ThemedText>
+                            <ThemedText style={styles.phrase}>{phrase.frase}</ThemedText>
+                            <ThemedView style={styles.metaRow}>
+                                <ThemedText style={styles.source}>— {phrase.fuente}</ThemedText>
+                                <ThemedView style={[styles.badge, { backgroundColor: accentColor }]}>
+                                    <ThemedText style={styles.badgeText}>
+                                        {phrase.estilo || 'Clásico'}
+                                    </ThemedText>
+                                </ThemedView>
+                            </ThemedView>
+                        </ThemedView>
+                    </Animated.View>
                 </ThemedView>
                 <TouchableOpacity
                     style={styles.button}
@@ -87,7 +97,7 @@ export default function PhraseScreen() {
                         getRandomPhrase();
                     }}
                 >
-                    <Animated.View
+                    <RNAnimated.View
                         style={{
                             transform: [
                                 {
@@ -100,7 +110,7 @@ export default function PhraseScreen() {
                         }}
                     >
                         <FontAwesome name="refresh" size={18} color="#fff" />
-                    </Animated.View>
+                    </RNAnimated.View>
                     {/* <ThemedText style={styles.buttonText}>Otra frase</ThemedText> */}
                 </TouchableOpacity>
             </ThemedView>
@@ -114,9 +124,12 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        justifyContent: 'center',
         paddingHorizontal: 20,
         paddingBottom: 24,
+    },
+    content: {
+        flex: 1,
+        justifyContent: 'center',
     },
     loadingText: {
         fontSize: 18,
@@ -181,8 +194,9 @@ const styles = StyleSheet.create({
     button: {
         flexDirection: 'row',
         backgroundColor: '#111827',
-        paddingVertical: 12,
+        paddingVertical: 18,
         paddingHorizontal: 22,
+        marginTop: 16,
         borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
@@ -197,7 +211,7 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 18,
         marginLeft: 10,
         fontWeight: '600',
     },
