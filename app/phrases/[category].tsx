@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { FontAwesome } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, TouchableOpacity } from 'react-native';
 import phrases from '../../data.json';
 
@@ -30,17 +30,17 @@ export default function PhraseScreen() {
     };
     const accentColor = category ? categoryColors[category] ?? '#22c55e' : '#22c55e';
 
-    const getRandomPhrase = () => {
+    const getRandomPhrase = useCallback(() => {
         if (category && phrases[category as keyof typeof phrases]) {
             const categoryPhrases = phrases[category as keyof typeof phrases];
             const randomIndex = Math.floor(Math.random() * categoryPhrases.length);
             setPhrase(categoryPhrases[randomIndex]);
         }
-    };
+    }, [category]);
 
     useEffect(() => {
         getRandomPhrase();
-    }, [category]);
+    }, [category, getRandomPhrase]);
 
     const triggerSpin = () => {
         spinAnim.setValue(0);
