@@ -7,7 +7,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabsLayout() {
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = (useColorScheme() ?? 'light') as 'light' | 'dark';
   const isDark = colorScheme === 'dark';
 
   return (
